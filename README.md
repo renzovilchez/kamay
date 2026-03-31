@@ -14,9 +14,11 @@ Marketplace de servicios profesionales. Conecta clientes con freelancers verific
 
 ## Estructura
 
+```
 kamay/
 ├── frontend/ → Next.js app
 └── backend/ → NestJS API
+```
 
 ## Setup local
 
