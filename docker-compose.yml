@@ -4,11 +4,11 @@ services:
     container_name: kamay_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: kamay_user
-      POSTGRES_PASSWORD: kamay_pass
-      POSTGRES_DB: kamay_db
+      POSTGRES_USER: ${DB_USER:-kamay_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kamay_pass}
+      POSTGRES_DB: ${DB_NAME:-kamay_db}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -17,7 +17,7 @@ services:
     container_name: kamay_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
 
