@@ -1,13 +1,165 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+datasource db {
+  provider = "postgresql"
+}
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "./generated"
 }
 
-datasource db {
-  provider = "postgresql"
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  clientProfile      ClientProfile?
+  freelancerProfile  FreelancerProfile?
+}
+
+model ClientProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String?
+  avatarUrl String?
+  location  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  orders  Order[]
+  reviews Review[]
+}
+
+model FreelancerProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug        String   @unique
+  bio         String?
+  skills      String[]
+  avatarUrl   String?
+  location    String?
+  isVerified  Boolean  @default(false)
+
+  services Service[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  orders  Order[]
+  reviews Review[]
+}
+
+model Category {
+  id          String @id @default(uuid())
+  name        String @unique
+  slug        String @unique
+  description String?
+
+  services Service[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Service {
+  id            String @id @default(uuid())
+  title         String
+  description   String
+  price         Float
+
+  categoryId    String
+  freelancerId  String
+
+  category      Category @relation(fields: [categoryId], references: [id])
+  freelancer    FreelancerProfile @relation(fields: [freelancerId], references: [id])
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Order {
+  id            String @id @default(uuid())
+
+  clientId      String
+  freelancerId  String
+  serviceId     String
+
+  status        OrderStatus
+
+  client        ClientProfile @relation(fields: [clientId], references: [id])
+  freelancer    FreelancerProfile @relation(fields: [freelancerId], references: [id])
+  service       Service @relation(fields: [serviceId], references: [id])
+
+  review   Review?
+  messages Message[]
+  disputes Dispute[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Review {
+  id            String @id @default(uuid())
+  rating        Int
+  comment       String?
+
+  clientId      String
+  freelancerId  String
+  orderId       String @unique
+
+  client        ClientProfile @relation(fields: [clientId], references: [id])
+  freelancer    FreelancerProfile @relation(fields: [freelancerId], references: [id])
+  order         Order @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id          String @id @default(uuid())
+  orderId     String
+  senderId    String
+  senderType  SenderType
+  content     String
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Dispute {
+  id        String @id @default(uuid())
+  orderId   String
+  reason    String
+  status    OrderStatus
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum SenderType {
+  CLIENT
+  FREELANCER
 }
